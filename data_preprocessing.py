@@ -52,6 +52,7 @@ if __name__ == '__main__':
     # lr_model.predict()为训练集的预测值
     predict_low_upper = pd.DataFrame([lr_model.predict(), iv_l, iv_u], index=['PredictSalePrice', 'iv_l', 'iv_u']).T
     predict_low_upper.plot(kind='hist', alpha=0.4)
+    plt.savefig('chart/PredictSalePrices.png')  # 保存图片
 
     plt.show()
 
