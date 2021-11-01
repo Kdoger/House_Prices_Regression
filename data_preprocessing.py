@@ -33,8 +33,6 @@ if __name__ == '__main__':
     target_data = data2['SalePrice']
 
     # 将数据集划分为训练集和测试集
-
-
     X_train, X_test, y_train, y_test = train_test_split(feature_data, target_data, test_size=0.3)
 
 
