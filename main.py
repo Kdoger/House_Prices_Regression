@@ -8,6 +8,7 @@ from scipy.special import boxcox1p
 from statsmodels.formula.api import ols
 
 from sklearn.linear_model import Ridge
+from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import cross_val_score
 from sklearn.linear_model import LogisticRegression
@@ -96,19 +97,19 @@ def data_processing(data):
     percent = (data.isnull().sum() / data.isnull().count()).sort_values(ascending=False)
     # pd.concat() axis=0 index,axis=1 column, keys列名
     missing_data = pd.concat([total, percent], axis=1, keys=['Total', 'Percent'])
-    print(missing_data.head(20))
+    # print(missing_data.head(20))
 
     # 处理缺失值，将含缺失值的整列剔除
     data1 = data.drop(missing_data[missing_data['Total'] > 1].index, axis=1)
     # 由于特征Electrical只有一个缺失值，故只需删除该行即可
     data2 = data1.drop(data1.loc[data1['Electrical'].isnull()].index)
     # 检查缺失值数量
-    print(data2.isnull().sum().max())
+    # print(data2.isnull().sum().max())
 
     feature_data = data2.drop(['SalePrice'], axis=1)
     target_data = data2['SalePrice']
 
-    print(feature_data)
+    # print(feature_data)
 
     # 将数据集划分为训练集和测试集
     X_train, X_test, y_train, y_test = train_test_split(feature_data, target_data, test_size=0.3)
@@ -157,7 +158,7 @@ def linear_regression(X_train, X_test, y_train, y_test, df_train):
     # lr_model = ols("SalePrice~C(OverallQual)+GrLivArea+C(GarageCars)+TotalBsmtSF+C(FullBath)+YearBuilt", data=df_train).fit()
     lr_model = ols("SalePrice~GrLivArea+TotalBsmtSF+YearBuilt", data=df_train).fit()
     print(lr_model.summary())
-    print('预测结果：')
+    print('线性回归预测结果：')
     print(lr_model.predict(X_test))
 
 # 岭回归模型
@@ -167,7 +168,7 @@ def ridge_regression(data):
 
     train, test, y_train, y_test = train_test_split(feature_data, target_data, test_size=0.3)
 
-    print(train.head(5))
+    # print(train.head(5))
 
     # 1.首先对train进行处理，删除可视化中出现的异常值
     train = train.drop(train[(train['TotalBsmtSF'] > 5000) & (train['SalePrice'] < 200000)].index)
@@ -184,7 +185,7 @@ def ridge_regression(data):
     y_train = train.SalePrice.values
     all_data = pd.concat((train, test)).reset_index(drop=True)
     all_data.drop(['SalePrice'], axis=1, inplace=True)
-    print("all_data size is : {}".format(all_data.shape))  # all_data size is : (2917, 80)
+    # print("all_data size is : {}".format(all_data.shape))  # all_data size is : (2917, 80)
 
     # 由于ID对预测没有作用，删除ID字段
     all_data.drop(['Id'], axis=1, inplace=True)
@@ -192,16 +193,16 @@ def ridge_regression(data):
     # 查看缺失值比率
     all_data_na = (all_data.isnull().sum() / len(all_data)) * 100
     all_data_na = all_data_na.drop(all_data_na[all_data_na == 0].index).sort_values(ascending=False)[:30]
-    print(all_data_na)
+    # print(all_data_na)
     missing_data = pd.DataFrame({'missing_data': all_data_na})
-    print(missing_data.head(20))
+    # print(missing_data.head(20))
 
     # 对于缺失率在80%以上的特征删除
     all_data = all_data.drop('PoolQC', axis=1)
     all_data = all_data.drop('MiscFeature', axis=1)
     all_data = all_data.drop('Alley', axis=1)
     all_data = all_data.drop('Fence', axis=1)
-    print(all_data.shape)  # (2917, 75)
+    # print(all_data.shape)  # (2917, 75)
 
     # 对于其他缺失值进行处理, 壁炉为空可能是没有，用none填充
     all_data['FireplaceQu'] = all_data['FireplaceQu'].fillna('none')
@@ -242,13 +243,13 @@ def ridge_regression(data):
 
     all_data_na = (all_data.isnull().sum() / len(all_data)) * 100
     all_data_na = all_data_na.drop(all_data_na[all_data_na == 0].index).sort_values(ascending=False)[:30]
-    print(all_data_na)
+    # print(all_data_na)
     missing_data = pd.DataFrame({'missing_data': all_data_na})
-    print(missing_data)
+    # print(missing_data)
 
     # 填充剩余的缺失值
-    for i in missing_data.index:
-        print(all_data[i].head())  # 未展示
+    '''for i in missing_data.index:
+        print(all_data[i].head())'''  # 未展示
 
     for i in ('SaleType', 'KitchenQual', 'Electrical', 'Exterior2nd', 'Exterior1st'):
         all_data[i] = all_data[i].fillna(all_data[i].mode()[0])
@@ -256,9 +257,9 @@ def ridge_regression(data):
     # 查看缺失值的比率，发现已经处理完毕，all_data里已经没有缺失值
     all_data_na = (all_data.isnull().sum() / len(all_data)) * 100
     all_data_na = all_data_na.drop(all_data_na[all_data_na == 0].index).sort_values(ascending=False)[:30]
-    print(all_data_na)
+    # print(all_data_na)
     missing_data = pd.DataFrame({'missing_data': all_data_na})
-    print(missing_data)
+    # print(missing_data)
 
     # 对于一些数值型特征，数值并不表示大小，将其值转换为字符型
     all_data['MSSubClass'] = all_data['MSSubClass'].apply(str)
@@ -279,7 +280,7 @@ def ridge_regression(data):
     all_data['Total_Bathrooms'] = (all_data['FullBath'] + (0.5 * all_data['HalfBath']) +
                                    all_data['BsmtFullBath'] + (0.5 * all_data['BsmtHalfBath']))
 
-    print(all_data.shape)  # (2917, 79)
+    # print(all_data.shape)  # (2917, 79)
 
     # 将all_data分开为训练集与测试集两部分，查看新特征与房价的相关性
     new_train = all_data[:ntrain]
@@ -296,10 +297,9 @@ def ridge_regression(data):
     y_train = new_train.SalePrice.values
     all_data = pd.concat((new_train, new_test)).reset_index(drop=True)
     all_data.drop(['SalePrice'], axis=1, inplace=True)
-    print("all_data size is : {}".format(all_data.shape))  # all_data size is : (2915, 78)
+    # print("all_data size is : {}".format(all_data.shape))  # all_data size is : (2915, 78)
 
     # 对有序性离散变量使用label encoder 进行编码
-    from sklearn.preprocessing import LabelEncoder
 
     cols = ('FireplaceQu', 'BsmtQual', 'BsmtCond', 'GarageQual', 'GarageCond',
             'ExterQual', 'ExterCond', 'HeatingQC', 'KitchenQual', 'BsmtFinType1',
@@ -310,19 +310,19 @@ def ridge_regression(data):
         lbe = LabelEncoder()
         lbe.fit(list(all_data[c].values))
         all_data[c] = lbe.transform(list(all_data[c].values))
-    print(all_data.shape)  # (2915, 78)
-    print(all_data.head(5))
+    # print(all_data.shape)  # (2915, 78)
+    # print(all_data.head(5))
 
     numeric_feats = all_data.dtypes[all_data.dtypes != "object"].index
 
     # 查看所有数字特征的偏度
     skewed_feats = all_data[numeric_feats].apply(lambda x: skew(x.dropna())).sort_values(ascending=False)
     skewness = pd.DataFrame({'Skew': skewed_feats})
-    print(skewness.head(10))
+    # print(skewness.head(10))
 
     # 查看有多少特征的偏度不符合要求，并进行转换
     skewness = skewness[abs(skewness) > 0.75]
-    print("有{}个特征需要转换 ".format(skewness.shape[0]))
+    # print("有{}个特征需要转换 ".format(skewness.shape[0]))
     # 有59个特征需要转换
     skewed_features = skewness.index
     lam = 0.15
@@ -339,12 +339,12 @@ def ridge_regression(data):
 
     drop_col = [column for column in data_up.columns if any(data_up[column] > 0.9)]
     all_data = all_data.drop(columns=drop_col)
-    print(all_data.shape)  # (2915, 207)
+    # print(all_data.shape)  # (2915, 207)
 
     # 将训练集与测试集分开，用于建模与测试
     train = all_data[:ntrain]
     test = all_data[ntrain:]
-    print(train.head())
+    # print(train.head())
 
     def rmse_cv(model):
         rmse = np.sqrt(-cross_val_score(model, train, y_train, scoring="neg_mean_squared_error", cv=5))
@@ -363,7 +363,7 @@ def ridge_regression(data):
     plt.xlabel("alpha")
     plt.ylabel("rmse")
     plt.savefig('chart/regression/ridge_regression.png')   # 保存图片
-    print(cv_ridge)
+    # print(cv_ridge)
 
     plt.show()
 
@@ -409,7 +409,7 @@ def logistic_regression(data):
     # print(y_predict)
     # print(lr_model.coef_)
     # print(lr_model.intercept_)
-    print('逻辑回归模型预测准确率：%.2f' %(lr_model.score(test, y_test) * 100))
+    print('逻辑回归模型预测准确率：%.2f ' %(lr_model.score(test, y_test) * 100) + '%')
 
     '''xcord_1 = []
     xcord_2 = []
