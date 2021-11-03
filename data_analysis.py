@@ -34,12 +34,12 @@ if __name__ == '__main__':
     plt.savefig('chart/OverallQual-SalePrice.png')  # 保存图片
 
     sns.boxplot(x='YearBuilt', y='SalePrice', data=data)
-    plt.savefig('chart/YearBuilt-SalePrice.png')  # 保存图片
+    plt.savefig('chart/YearBuilt-SalePrice.png')  # 保存图片'''
 
-    grouped = data.groupby('OverallQual')
+    '''grouped = data.groupby('OverallQual')
     g1 = grouped['SalePrice'].mean().reset_index('OverallQual')
     sns.barplot(x='OverallQual', y='SalePrice', data=g1)
-    plt.savefig('chart/OverallQual-SalePrice_barplot.png')  # 保存图片
+    plt.savefig('chart/OverallQual-SalePrice_barplot.png')  # 保存图片'''
 
     '''# 计算热力图：上两种分析都是针对单个特征与目标变量逐一分析，这种方法非常耗时繁琐，下面介绍一种系统性分析特征与目标变量相关性的方法，通过对数据集整体特征（数值型数据）进行分析，来找出最佳特征
     # 设置图幅大小
@@ -52,11 +52,11 @@ if __name__ == '__main__':
     fig.savefig('chart/heatmap.png')  # 保存图片'''
 
     # 取相关性前10的特征
-    corrmatrix_1 = data.corr()
+    corrmatrix = data.corr()
     k = 10
     # data.nlargest(k, 'target')在data中取‘target'列值排前十的行
     # cols为排前十的行的index,在本例中即为与’SalePrice‘相关性最大的前十个特征名
-    cols = corrmatrix_1.nlargest(k, 'SalePrice')['SalePrice'].index
+    cols = corrmatrix.nlargest(k, 'SalePrice')['SalePrice'].index
     cm = np.corrcoef(data[cols].values.T)
     # data[cols].values.T
     # 设置坐标轴字体大小
@@ -66,8 +66,7 @@ if __name__ == '__main__':
     # yticklabels为Y轴刻度标签值，xticklabels为X轴刻度标签值
     hm = sns.heatmap(cm, cmap='RdPu', annot=True, square=True, fmt='.2f', annot_kws={'size': 10},
                      yticklabels=cols.values, xticklabels=cols.values)
-    fig_1 = hm.get_figure()
-    fig_1.savefig('chart/heatmap_valid.png', bbox_inches='tight')  # 保存图片
+    plt.savefig('chart/heatmap_valid.png', bbox_inches='tight')  # 保存图片
 
     '''
     由上图可以看出：

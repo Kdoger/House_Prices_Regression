@@ -2,19 +2,16 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-import seaborn as sns
+
 from scipy.stats import skew
-from sklearn.model_selection import train_test_split
-from statsmodels.formula.api import ols
 from scipy.special import boxcox1p
-from statsmodels.sandbox.regression.predstd import wls_prediction_std
-# 导入模型相关的库
-from sklearn.linear_model import Ridge, RidgeCV, ElasticNet, LassoCV, LassoLarsCV
+from statsmodels.formula.api import ols
+
+from sklearn.linear_model import Ridge
+from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import cross_val_score
-from sklearn.linear_model import LinearRegression
-# 导入模型相关的库
-from sklearn.linear_model import Ridge, RidgeCV, ElasticNet, LassoCV, LassoLarsCV
-from sklearn.model_selection import cross_val_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
 
 # 数据分析：查看各特征之间的相关性
 def data_analysis(data):
@@ -41,10 +38,10 @@ def data_analysis(data):
     sns.boxplot(x='YearBuilt', y='SalePrice', data=data)
     plt.savefig('chart/analysis/YearBuilt-SalePrice.png')  # 保存图片
 
-    grouped = data.groupby('OverallQual')
+    '''grouped = data.groupby('OverallQual')
     g1 = grouped['SalePrice'].mean().reset_index('OverallQual')
     sns.barplot(x='OverallQual', y='SalePrice', data=g1)
-    plt.savefig('chart/analysis/OverallQual-SalePrice_barplot.png')  # 保存图片
+    plt.savefig('chart/analysis/OverallQual-SalePrice_barplot.png')  # 保存图片'''
 
     '''# 计算热力图：上两种分析都是针对单个特征与目标变量逐一分析，这种方法非常耗时繁琐，下面介绍一种系统性分析特征与目标变量相关性的方法，通过对数据集整体特征（数值型数据）进行分析，来找出最佳特征
     # 设置图幅大小
@@ -120,6 +117,7 @@ def data_processing(data):
 
     return X_train, X_test, y_train, y_test, df_train
 
+# 线性回归模型：一元回归、多元回归
 def linear_regression(X_train, X_test, y_train, y_test, df_train):
     # ols("target~feature+C(feature)", data=data
     # C(feature)表示这个特征为分类特征category
@@ -162,6 +160,7 @@ def linear_regression(X_train, X_test, y_train, y_test, df_train):
     print('预测结果：')
     print(lr_model.predict(X_test))
 
+# 岭回归模型
 def ridge_regression(data):
     feature_data = data
     target_data = data['SalePrice']
@@ -360,27 +359,92 @@ def ridge_regression(data):
 
     # 画图查看不同超参数的模型的分数
     cv_ridge = pd.Series(cv_ridge, index=alphas)
-    cv_ridge.plot(title="Validation - Just Do It")
+    cv_ridge.plot(title="alpha VS rmse")
     plt.xlabel("alpha")
     plt.ylabel("rmse")
+    plt.savefig('chart/regression/ridge_regression.png')   # 保存图片
     print(cv_ridge)
 
     plt.show()
 
+    # alpha参数用我们之前验证过的10,然后用训练集对模型进行训练
+    clf = Ridge(alpha=10)
+    clf.fit(train, y_train)
+    # 输出 Ridge(alpha=10, copy_X=True, fit_intercept=True, max_iter=None, normalize=False,random_state=None, solver='auto', tol=0.001)
+
+    # 对测试集进行预测，并导出结果
+    predict = clf.predict(test)
+    test_pre = pd.DataFrame()
+    test_pre['ID'] = test_id
+    test_pre['SalePrice'] = np.exp(predict)
+    test_pre.to_csv('prediction.csv', index=False)
+    print('岭回归模型预测结果：')
+    print(test_pre.head())
+
     pass
+
+# 逻辑回归模型
+def logistic_regression(data):
+    # 求房价中位数
+    median = data['SalePrice'].median()
+    # 选取的特征有：'GrLivArea', 'TotalBsmtSF', 'YearBuilt'。
+    subdata = {
+        'GrLivArea': data['GrLivArea'],
+        'YearBuilt': data['YearBuilt'],
+        'TotalBsmtSF': data['TotalBsmtSF']
+    }
+    subdata = pd.DataFrame(subdata)
+    train, test, y_train, y_test = train_test_split(subdata, data['SalePrice'], test_size=0.3)
+
+    # 标准化
+    std = StandardScaler()
+    train = std.fit_transform(train)
+    test = std.transform(test)
+
+    # 建立模型
+    lr_model = LogisticRegression(C=1.0)
+    lr_model.fit(train, y_train)
+
+    y_predict = lr_model.predict(test)
+    # print(y_predict)
+    # print(lr_model.coef_)
+    # print(lr_model.intercept_)
+    print('逻辑回归模型预测准确率：%.2f' %(lr_model.score(test, y_test) * 100))
+
+    '''xcord_1 = []
+    xcord_2 = []
+    ycord_1 = []
+    ycord_2 = []
+    for i in range(data.shape[0]):
+        if data['SalePrice'][i] >= median:   # 高房价
+            xcord_1.append(data['YearBuilt'][i])
+            ycord_1.append(data['GrLivArea'][i])
+        else:
+            xcord_2.append(data['YearBuilt'][i])
+            ycord_2.append(data['GrLivArea'][i])
+
+    plt.scatter(xcord_1, ycord_1, s=30, c='red', marker='s')
+    plt.scatter(xcord_2, ycord_2, s=30, c='green')
+
+    plt.show()'''
 
 if __name__ == '__main__':
     data = pd.read_csv("data.csv")
 
     # 数据分析
-    # data_analysis(data)
+    data_analysis(data)
 
     # 数据预处理：填补缺省值，删除无用列，划分训练集和测试集
-    # X_train, X_test, y_train, y_test, df_train = data_processing(data)
+    X_train, X_test, y_train, y_test, df_train = data_processing(data)
 
     # 建立回归模型
     # 线性回归模型：一元回归、多元回归
-    # linear_regression(X_train, X_test, y_train, y_test, df_train)
+    linear_regression(X_train, X_test, y_train, y_test, df_train)
+    print('-----分割线-----')
 
     # 岭回归模型
     ridge_regression(data)
+    print('-----分割线-----')
+
+    # 逻辑回归模型
+    logistic_regression(data)
