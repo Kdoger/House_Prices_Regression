@@ -1,13 +1,9 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression
-# 导入模型相关的库
-from sklearn.linear_model import Ridge, RidgeCV, ElasticNet, LassoCV, LassoLarsCV
-from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import train_test_split
 
-import data_processing as dp
+
+# 导入模型相关的库
 
 # sigmoid函数和初始化数据
 def sigmoid(z):
