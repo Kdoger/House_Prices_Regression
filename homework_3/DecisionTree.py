@@ -4,7 +4,6 @@
 '''
 import pandas as pd
 from sklearn import tree #导入需要的模块
-from sklearn.model_selection import train_test_split
 
 from homework_3.data_processing import Data_Processing
 
