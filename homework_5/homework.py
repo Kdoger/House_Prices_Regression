@@ -10,10 +10,6 @@ from gensim import models
 # gensim安装的是3.8版本，最新版本中没有wrappers
 from gensim.models.wrappers import DtmModel
 
-
-
-
-
 '''
 对 （发表时间、摘要） 进行处理
 思路：
